@@ -382,57 +382,116 @@ openssl x509 -in etcdcluster.pem --text -noout
 
 https://etcd.io/docs/current/op-guide/clustering/
 
-```
-$ etcd --name infra0 --initial-advertise-peer-urls https://10.0.1.10:2380 \
-  --listen-peer-urls https://10.0.1.10:2380 \
-  --listen-client-urls https://10.0.1.10:2379,https://127.0.0.1:2379 \
-  --advertise-client-urls https://10.0.1.10:2379 \
-  --initial-cluster-token etcd-cluster-1 \
-  --initial-cluster infra0=https://10.0.1.10:2380,infra1=https://10.0.1.11:2380,infra2=https://10.0.1.12:2380 \
-  --initial-cluster-state new \
-  --client-cert-auth --trusted-ca-file=/path/to/ca-client.crt \
-  --cert-file=/path/to/infra0-client.crt --key-file=/path/to/infra0-client.key \
-  --peer-client-cert-auth --peer-trusted-ca-file=ca-peer.crt \
-  --peer-cert-file=/path/to/infra0-peer.crt --peer-key-file=/path/to/infra0-peer.key
-```
+
 
 ```shell
-cat > /opt/etcd/etcd-server-startup.sh << EOF
-#!/usr/bin/env bash
-./etcd --name etcd-server-01 \
-       --data-dir /data/etcd/etcd-server \
-       --listen-peer-urls https://10.9.4.87:2380 \
-       --listen-client-urls https://10.9.4.87:2379,http://127.0.0.1:2379 \
-       --quota-backend-bytes 8000000000 \
-       --initial-advertise-peer-urls https://10.9.4.87:2380 \
-       --advertise-client-urls https://10.9.4.87:2379,http://127.0.0.1:2379 \
-       --initial-cluster etcd-server-01=https://10.9.4.87:2380,etcd-server-02=https://10.9.4.88:2380,etcd-server-03=https://10.9.4.89:2380 \
-       --ca-file ./certs/ca.pem \
-       --cert-file ./certs/etcd-peer.pem \
-       --key-file ./certs/etcd-peer-key.pem \
-       --client-cert-auth \
-       --trusted-ca-file ./certs/ca.pem \
-       --peer-ca-file ./certs/ca.pem \
-       --peer-cert-file ./certs/etcd-peer.pem \
-       --peer-key-file ./certs/etcd-peer-key.pem \
-       --peer-client-cert-auth \
-       --peer-trusted-ca-file ./certs/ca.pem \
-       --log-output stdout
-EOF
-chmod +x /opt/etcd/etcd-server-startup.sh
+cd /root/cfssl/
+cp etcdcluster* /opt/ssl/
+cp etcd-root-ca.pem /opt/ssl/
+```
+
+**master1**
+
+```shell
+etcd --name master1 --data-dir /opt/app/etcd/data --initial-advertise-peer-urls https://10.0.0.10:2380  --listen-peer-urls https://10.0.0.10:2380 \
+  --listen-client-urls https://10.0.0.10:2379,https://127.0.0.1:2379 \
+  --advertise-client-urls https://10.0.0.10:2379 \
+  --initial-cluster-token etcd-cluster-1 \
+  --initial-cluster master1=https://10.0.0.10:2380,master2=https://10.0.0.11:2380,master3=https://10.0.0.12:2380 \
+  --initial-cluster-state new \
+  --client-cert-auth --trusted-ca-file=/opt/ssl/etcd-root-ca.pem \
+  --cert-file=/opt/ssl/etcdcluster.pem --key-file=/opt/ssl/etcdcluster-key.pem \
+  --peer-client-cert-auth --peer-trusted-ca-file=/opt/ssl/etcd-root-ca.pem \
+  --peer-cert-file=/opt/ssl/etcdcluster.pem --peer-key-file=/opt/ssl/etcdcluster-key.pem
+```
+
+**master2**
+
+```shell
+etcd --name master2 --data-dir /opt/app/etcd/data --initial-advertise-peer-urls https://10.0.0.11:2380 \
+  --listen-peer-urls https://10.0.0.11:2380 \
+  --listen-client-urls https://10.0.0.11:2379,https://127.0.0.1:2379 \
+  --advertise-client-urls https://10.0.0.11:2379 \
+  --initial-cluster-token etcd-cluster-1 \
+  --initial-cluster master1=https://10.0.0.10:2380,master2=https://10.0.0.11:2380,master3=https://10.0.0.12:2380 \
+  --initial-cluster-state new \
+  --client-cert-auth --trusted-ca-file=/opt/ssl/etcd-root-ca.pem \
+  --cert-file=/opt/ssl/etcdcluster.pem --key-file=/opt/ssl/etcdcluster-key.pem \
+  --peer-client-cert-auth --peer-trusted-ca-file=/opt/ssl/etcd-root-ca.pem \
+  --peer-cert-file=/opt/ssl/etcdcluster.pem --peer-key-file=/opt/ssl/etcdcluster-key.pem
+```
+
+**master3**
+
+```shell
+etcd --name master3 --data-dir /opt/app/etcd/data --initial-advertise-peer-urls https://10.0.0.12:2380 \
+  --listen-peer-urls https://10.0.0.12:2380 \
+  --listen-client-urls https://10.0.0.12:2379,https://127.0.0.1:2379 \
+  --advertise-client-urls https://10.0.0.12:2379 \
+  --initial-cluster-token etcd-cluster-1 \
+  --initial-cluster master1=https://10.0.0.10:2380,master2=https://10.0.0.11:2380,master3=https://10.0.0.12:2380 \
+  --initial-cluster-state new \
+  --client-cert-auth --trusted-ca-file=/opt/ssl/etcd-root-ca.pem \
+  --cert-file=/opt/ssl/etcdcluster.pem --key-file=/opt/ssl/etcdcluster-key.pem \
+  --peer-client-cert-auth --peer-trusted-ca-file=/opt/ssl/etcd-root-ca.pem \
+  --peer-cert-file=/opt/ssl/etcdcluster.pem --peer-key-file=/opt/ssl/etcdcluster-key.pem
 ```
 
 
+
+**健康检查**
+
+```shell
+etcdctl --endpoints https://10.0.0.10:2379,https://10.0.0.11:2379,https://10.0.0.12:2379 --cacert /opt/ssl/etcd-root-ca.pem --cert /opt/ssl/etcdcluster-key.pem --key /opt/ssl/etcdcluster-key.pem endpoint health
+```
+
+输出：
+
+```shell
+https://10.0.0.10:2379 is healthy: successfully committed proposal: took = 13.300639ms
+https://10.0.0.12:2379 is healthy: successfully committed proposal: took = 13.830267ms
+https://10.0.0.11:2379 is healthy: successfully committed proposal: took = 17.139262ms
+```
+
+
+
+**简单操作**
+
+```shell
+etcdctl --endpoints https://10.0.0.10:2379,https://10.0.0.11:2379,https://10.0.0.12:2379 --cacert /opt/ssl/etcd-root-ca.pem --cert /opt/ssl/etcdcluster.pem --key /opt/ssl/etcdcluster-key.pem put /test/k1 v1
+```
 
 
 
 ## 使用supervisord管理
 
+```shell
+yum install supervisor.noarch -y
+cat > /etc/supervisord.d/etcd-server.ini << EOF
+[program:etcd-server]
+directory=/opt/etcd
+command=/opt/etcd/etcd-server-startup.sh
+autostart=true
+autorestart=true
+startsecs=10
+stdout_logfile=/var/log/etcd.log
+stdout_logfile_maxbytes=1MB
+stdout_logfile_backups=5
+stdout_capture_maxbytes=1MB
+stderr_logfile=/var/log/etcd_error.log
+stderr_logfile_maxbytes=1MB
+stderr_logfile_backups=5
+stderr_capture_maxbytes=1MB
+EOF
 
 
+systemctl start supervisord
+systemctl enable supervisord
+```
 
+## 构建systemd服务
 
-
+http://play.etcd.io/install
 
 
 
