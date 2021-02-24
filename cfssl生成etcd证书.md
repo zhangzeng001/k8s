@@ -319,7 +319,6 @@ openssl x509 -in etcd-root-ca.pem -text -noout
   "CN": "etcd",
   "hosts": [
     "127.0.0.1",
-    "localhost",
     "10.0.0.10",
     "10.0.0.11",
     "10.0.0.12"
