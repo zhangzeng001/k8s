@@ -134,7 +134,7 @@ ca.pem
 ## 验证
 
 ```shell
-openssl x509 -in etcd-root-ca.pem --text -noout
+openssl x509 -in etcd-root-ca.pem -text -noout
 ```
 
 
@@ -305,7 +305,7 @@ total 20
 ## 验证
 
 ```shell
-openssl x509 -in etcd-root-ca.pem --text -noout
+openssl x509 -in etcd-root-ca.pem -text -noout
 ```
 
 ## 使用私钥生成本地颁发的证书 
