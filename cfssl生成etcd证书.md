@@ -442,7 +442,7 @@ etcd --name master3 --data-dir /opt/app/etcd/data --initial-advertise-peer-urls 
 **健康检查**
 
 ```shell
-etcdctl --endpoints https://10.0.0.10:2379,https://10.0.0.11:2379,https://10.0.0.12:2379 --cacert /opt/ssl/etcd-root-ca.pem --cert /opt/ssl/etcdcluster-key.pem --key /opt/ssl/etcdcluster-key.pem endpoint health
+etcdctl --endpoints https://10.0.0.10:2379,https://10.0.0.11:2379,https://10.0.0.12:2379 --cacert /opt/ssl/etcd-root-ca.pem --cert /opt/ssl/etcdcluster.pem --key /opt/ssl/etcdcluster-key.pem endpoint health
 ```
 
 输出：
